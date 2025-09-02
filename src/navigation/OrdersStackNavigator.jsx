@@ -10,7 +10,7 @@ export default function OrdersStackNavigator() {
         <Stack.Navigator
             initialRouteName='Carrito'
             screenOptions={{
-                header: ({ route }) => <Header title="Mundo Geek" subtitle={route.name} />
+                header: ({ route }) => <Header title="CorteYa" subtitle={route.name} />
             }}
         >
             <Stack.Screen name="Carrito" component={OrdersScreen} />

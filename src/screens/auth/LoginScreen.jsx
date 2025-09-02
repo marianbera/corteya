@@ -49,7 +49,7 @@ const LoginScreen = ({ navigation, route }) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Mundo Geek</Text>
+            <Text style={styles.title}>CorteYa</Text>
             <Text style={styles.subTitle}>Inicia sesión</Text>
             <View style={styles.inputContainer}>
                 <TextInput
@@ -100,17 +100,17 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: colors.purple
+        backgroundColor: colors.secondary
     },
     title: {
-        color: colors.neonGreen,
+        color: colors.primary,
         fontFamily: "PressStart2P",
         fontSize: 24
     },
     subTitle: {
         fontFamily: "Montserrat",
         fontSize: 18,
-        color: colors.yellow,
+        color: colors.primary,
         fontWeight: '700',
         letterSpacing: 3
     },

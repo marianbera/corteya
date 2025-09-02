@@ -1,15 +1,14 @@
 {
   "expo": {
-    "name": "mundogeek-74035",
-    "slug": "mundogeek-74035",
+    "name": "CorteYa",
+    "slug": "corteya",
     "version": "1.0.0",
+    "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FFFFFF"
     },
     "ios": {
       "supportsTablet": true

@@ -1,10 +1,11 @@
 import * as SQLite from 'expo-sqlite';
 
 let db
+const DB_NAME = 'corteya.db';
 
 export const initDB = async () => {
     if (!db) {
-        db = await SQLite.openDatabaseAsync('mundogeek.db');
+        db = await SQLite.openDatabaseAsync(DB_NAME);
     }
 }
 

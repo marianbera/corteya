@@ -11,8 +11,8 @@ const CategoriesScreen = ({ navigation }) => {
     //const categories = useSelector(state=>state.shopReducer.categories)
 
     const { data: categories, isLoading, error } = useGetCategoriesQuery()
-    //console.log(isLoading,error)
-    //console.log(categories)
+    console.log(isLoading,error)
+    console.log(categories)
 
     const dispatch = useDispatch()
 
