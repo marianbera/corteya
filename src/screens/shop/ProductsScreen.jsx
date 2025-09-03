@@ -1,64 +1,81 @@
-import { StyleSheet, Text, View, FlatList,Pressable } from 'react-native'
-//import products from '../../data/products.json'
-import FlatCard from '../../components/FlatCard'
-import { colors } from '../../global/colors'
-import { useEffect, useState } from 'react'
-import Search from '../../components/Search'
-import { useSelector } from 'react-redux'
-import { useGetProductsByCategoryQuery } from '../../services/shop/shopApi'
-
+// src/screens/shop/ProductsScreen.jsx
+import { StyleSheet, FlatList, Image, Pressable, View } from 'react-native';
+import FlatCard from '../../components/FlatCard';
+import TextKarlaRegular from '../../components/TextKarlaRegular';
+import Search from '../../components/Search';
+import { colors } from '../../global/colors';
+import { useMemo, useState } from 'react';
+import { useGetBarbershopsQuery } from '../../services/barbers/barbersApi';
+import Icon from 'react-native-vector-icons/MaterialIcons'
 
 const ProductsScreen = ({ navigation }) => {
-    const [productsFiltered, setProductsFiltered] = useState([])
-    const [keyword, setKeyword] = useState("")
+  const { data: barbers = [] } = useGetBarbershopsQuery();
+  const [keyword, setKeyword] = useState('');
 
-    const products = useSelector(state=>state.shopReducer.products)
-    const category = useSelector(state=>state.shopReducer.categorySelected)
+  // Preparo un string para búsqueda rápida
+  const normalized = useMemo(
+    () =>
+      barbers.map((b) => ({
+        ...b,
+        _q: `${b.name} ${b.address ?? ''} ${b.city ?? ''}`.toLowerCase(),
+      })),
+    [barbers]
+  );
 
-    //const productsFilteredByCategory = useSelector(state=>state.shopReducer.productsFilteredByCategory)
+  const filtered = useMemo(() => {
+    const k = keyword.trim().toLowerCase();
+    if (!k) return normalized;
+    return normalized.filter((b) => b._q.includes(k));
+  }, [keyword, normalized]);
 
-    const {data: productsFilteredByCategory, isLoading, error} = useGetProductsByCategoryQuery(category.toLowerCase())
-    //console.log(productsFilteredByCategory)
+const renderItem = ({ item }) => (
+  <Pressable onPress={() => navigation.navigate('Producto', { product: item })}>
+    <FlatCard>
+      <View style={styles.row}>
+        <Image style={styles.thumb} source={{ uri: item.image }} />
+        <View style={styles.info}>
+          <TextKarlaRegular style={styles.name}>{item.name}</TextKarlaRegular>
+          {!!item.address && <TextKarlaRegular>{item.address}</TextKarlaRegular>}
+          <View style={styles.rating}>
+            <TextKarlaRegular>{Number(item.rating ?? 0).toFixed(1)}</TextKarlaRegular>
+            <Icon name="star" size={16} color={colors.yellow ?? '#F2C94C'} />
+          </View>
+        </View>
+      </View>
+    </FlatCard>
+  </Pressable>
+)
 
-    //console.log(route)
-    //const { category } = route.params
-
-    useEffect(() => {
-        /* const productsFilteredByCategory = products.filter(
-            product => product.category.toLowerCase() === category.toLowerCase()
-        ) */
-        if (keyword) {
-            const productsFilteredByKeyword = productsFilteredByCategory.filter(
-                product => product.title.toLowerCase().includes(keyword.toLowerCase())
-            )
-            setProductsFiltered(productsFilteredByKeyword)
-        } else {
-            setProductsFiltered(productsFilteredByCategory)
+  return (
+    <>
+      <Search keyword={keyword} setKeyword={setKeyword} />
+      <FlatList
+        data={filtered}
+        renderItem={renderItem}
+        keyExtractor={(it, idx) => String(it?.id ?? idx)}
+        contentContainerStyle={styles.list}
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <TextKarlaRegular style={styles.muted}>Sin resultados</TextKarlaRegular>
+          </View>
         }
-    }, [category, keyword,productsFilteredByCategory])
+      />
+    </>
+  );
+};
 
-    const renderProductItem = ({ item }) => (
-        <Pressable onPress={()=>navigation.navigate("Producto",{product:item})}>
-            <FlatCard>
-                <Text>{item.title}</Text>
-            </FlatCard>
-        </Pressable>
+export default ProductsScreen;
 
-    )
+const styles = StyleSheet.create({
+  list: { paddingVertical: 8 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  thumb: { width: 80, height: 60, borderRadius: 8, backgroundColor: '#ddd', marginLeft: 12 }, // ← empuja la foto a la derecha
+  info: { flex: 1, minHeight: 60, justifyContent: 'center', position: 'relative' },
+  name: { marginBottom: 2 },
+  rating: { position: 'absolute', right: 8, bottom: 6, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  empty: { padding: 24, alignItems: 'center' },
+  muted: { color: colors.textMuted },
+})
 
-    return (
-        <>
-            <Search keyword={keyword} setKeyword={setKeyword} />
-            <FlatList
-                data={productsFiltered}
-                renderItem={renderProductItem}
-                keyExtractor={item => item.id}
-            />
-        </>
 
-    )
-}
 
-export default ProductsScreen
-
-const styles = StyleSheet.create({})

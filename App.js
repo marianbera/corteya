@@ -11,13 +11,15 @@ import MainNavigator from './src/navigation/MainNavigator';
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-  const [loaded, error] = useFonts({
-    'Karla-Regular': require('./assets/fonts/Karla-Regular.ttf'),
-    'Karla-Bold': require('./assets/fonts/Karla-Bold.ttf'),
-    'Karla-Italic': require('./assets/fonts/Karla-Italic.ttf'),
-    'Karla-Light': require('./assets/fonts/Karla-Light.ttf'),
-    'PressStart2P': require('./assets/fonts/PressStart2P-Regular.ttf'),
-  });
+const [loaded, error] = useFonts({
+  'Karla-Regular': require('./assets/fonts/Karla-Regular.ttf'),
+  'Karla-Bold': require('./assets/fonts/Karla-Bold.ttf'),
+  'Karla-Italic': require('./assets/fonts/Karla-Italic.ttf'),
+  'Karla-Light': require('./assets/fonts/Karla-Light.ttf'),
+  'PressStart2P': require('./assets/fonts/PressStart2P-Regular.ttf'),
+  'Mulidey': require('./assets/fonts/Mulidey.ttf'), 
+});
+
 
   useEffect(() => {
     if (loaded || error) {

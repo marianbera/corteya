@@ -109,8 +109,8 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.primary,
-    fontFamily: 'PressStart2P',
-    fontSize: 24
+    fontFamily: 'Mulidey',
+    fontSize: 80
   },
   subTitle: {
     fontFamily: 'Montserrat',
