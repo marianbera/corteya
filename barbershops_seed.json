@@ -1,0 +1,10 @@
+{
+  "barbershops": {
+    "1": { "id": 1, "name": "Barbería CorteYa Centro", "image": "https://picsum.photos/seed/barber1/600/400", "address": "Av. Corrientes 1234", "city": "Buenos Aires", "rating": 4.6 },
+    "2": { "id": 2, "name": "Barber Bros Palermo", "image": "https://picsum.photos/seed/barber2/600/400", "address": "Guatemala 5600", "city": "Buenos Aires", "rating": 4.7 },
+    "3": { "id": 3, "name": "Navaja & Peine Recoleta", "image": "https://picsum.photos/seed/barber3/600/400", "address": "Av. Callao 980", "city": "Buenos Aires", "rating": 4.5 },
+    "4": { "id": 4, "name": "Fade Factory Caballito", "image": "https://picsum.photos/seed/barber4/600/400", "address": "Av. Rivadavia 4500", "city": "Buenos Aires", "rating": 4.4 },
+    "5": { "id": 5, "name": "Old School Barbers", "image": "https://picsum.photos/seed/barber5/600/400", "address": "Chile 250", "city": "Buenos Aires", "rating": 4.3 },
+    "6": { "id": 6, "name": "El Templo del Fade", "image": "https://picsum.photos/seed/barber6/600/400", "address": "Av. Santa Fe 3200", "city": "Buenos Aires", "rating": 4.8 }
+  }
+}
