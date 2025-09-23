@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View, Pressable, Image, ScrollView, useWindowDimensions } from 'react-native'
 import { colors } from '../../global/colors';
 import { useDispatch } from 'react-redux';
-import { addItems } from '../../features/cart/cartSlice';
 
 const ProductScreen = ({ route }) => {
     const { product } = route.params

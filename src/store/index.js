@@ -3,7 +3,6 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 
 // reducers “normales”
 import shopReducer from "../features/shop/shopSlice";
-import cartReducer from "../features/cart/cartSlice";
 import userReducer from "../features/user/userSlice";
 
 // RTK Query APIs (cada una una sola vez)
@@ -15,7 +14,6 @@ import { barbersApi } from "../services/barbers/barbersApi";
 const store = configureStore({
   reducer: {
     shopReducer,
-    cartReducer,
     userReducer,
 
     // Registrá CADA api una vez

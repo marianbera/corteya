@@ -1,11 +1,9 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Header from '../components/Header';
 
-// Lista de barberías (tu ProductsScreen actual)
-import ProductsScreen from '../screens/shop/ProductsScreen';
-
-// Detalle nuevo
-import BarbershopScreen from '../screens/barbers/BarbershopScreen';
+import ProductsScreen from '../screens/shop/ProductsScreen';     // Lista de barberías
+import BarbershopScreen from '../screens/barbers/BarbershopScreen'; // Detalle
+import BookingScreen from '../screens/booking/BookingScreen';       // NUEVA: Reserva
 
 const Stack = createNativeStackNavigator();
 
@@ -19,6 +17,7 @@ export default function ShopStackNavigator() {
     >
       <Stack.Screen name="Barberías" component={ProductsScreen} />
       <Stack.Screen name="Barbería" component={BarbershopScreen} />
+      <Stack.Screen name="Booking" component={BookingScreen} />
     </Stack.Navigator>
   );
 }
