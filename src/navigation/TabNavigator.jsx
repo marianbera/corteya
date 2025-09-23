@@ -1,7 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ShopStackNavigator from './ShopStackNavigator';
-import CartStackNavigator from './CartStackNavigator';
-import OrdersStackNavigator from './OrdersStackNavigator';
 import ProfileStackNavigator from './ProfileStackNavigator';
 //Puedo utilizar acá también el barrel (index.js)
 import Icon from 'react-native-vector-icons/Feather'
@@ -35,24 +33,10 @@ export default function TabNavigator() {
             }}
         >
             <Tab.Screen
-                name="Shop"
+                name="Home"
                 component={ShopStackNavigator}
                 options={{
-                    tabBarIcon: ({focused}) => <Icon name="shopping-bag" size={24} color={focused?colors.darkGray:colors.mediumGray} />
-                }}
-            />
-            <Tab.Screen
-                name="Cart"
-                component={CartStackNavigator}
-                options={{
-                    tabBarIcon: ({focused}) => <Icon name="shopping-cart" size={24} color={focused?colors.darkGray:colors.mediumGray} />
-                }}
-            />
-            <Tab.Screen
-                name="Orders"
-                component={OrdersStackNavigator}
-                options={{
-                    tabBarIcon: ({focused}) => <Icon name="tablet" size={24} color={focused?colors.darkGray:colors.mediumGray} />
+                    tabBarIcon: ({focused}) => <Icon name="search" size={24} color={focused?colors.darkGray:colors.mediumGray} />
                 }}
             />
             <Tab.Screen

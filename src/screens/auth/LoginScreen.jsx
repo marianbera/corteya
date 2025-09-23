@@ -20,7 +20,6 @@ const LoginScreen = ({ navigation, route }) => {
         triggerLogin({ email, password })
     }
 
-    console.log("Mantener sesión: ", persistSession)
 
     useEffect(() => {
         const saveLoginSession = async () => {
