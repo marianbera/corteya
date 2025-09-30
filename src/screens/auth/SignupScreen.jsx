@@ -1,9 +1,23 @@
-
-import { StyleSheet, Text, View, TextInput, Pressable, Dimensions } from 'react-native'
-import { colors } from '../../global/colors'
 import { useState } from 'react'
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  Pressable,
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native'
+import { colors } from '../../global/colors'
 import { useSignUpMutation } from '../../services/auth/authApi'
-const textInputWidth = Dimensions.get('window').width * 0.7
+
+const textInputWidth = Math.min(Dimensions.get('window').width * 0.86, 420)
+const LOGO = require('../../../assets/logo.png') // <- poné tu imagen en /assets/logo.png
 
 const SignupScreen = ({ navigation }) => {
   const [email, setEmail] = useState('')
@@ -12,9 +26,6 @@ const SignupScreen = ({ navigation }) => {
   const [signUp, { isLoading, error }] = useSignUpMutation()
 
   const handleRegister = async () => {
-
-    console.log('CLICK REGISTRAR', { email, password, confirmPassword })
-
     if (!email || !password || !confirmPassword) {
       alert('Completá email y ambas contraseñas')
       return
@@ -30,8 +41,7 @@ const SignupScreen = ({ navigation }) => {
 
     try {
       const res = await signUp({ email, password }).unwrap()
-      console.log('OK signup', res) 
-
+      console.log('OK signup', res)
       navigation.replace('Login')
     } catch (e) {
       console.log('ERR signup', e)
@@ -40,133 +50,156 @@ const SignupScreen = ({ navigation }) => {
   }
 
   return (
-    <View style={styles.gradient}>
-      <Text style={styles.title}>CorteYa</Text>
-      <Text style={styles.subTitle}>Registrate</Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: colors.white }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <StatusBar barStyle="dark-content" />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          {/* Logo */}
+          <Image source={LOGO} style={styles.logo} resizeMode="contain" />
 
-      <View style={styles.inputContainer}>
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          placeholderTextColor={colors.white}
-          placeholder="Email"
-          style={styles.textInput}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <TextInput
-          value={password}
-          onChangeText={setPassword}
-          placeholderTextColor={colors.white}
-          placeholder="Password"
-          style={styles.textInput}
-          secureTextEntry
-        />
-        <TextInput
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          placeholderTextColor={colors.white}
-          placeholder="Repetir password"
-          style={styles.textInput}
-          secureTextEntry
-        />
-      </View>
+          {/* Título */}
+          <Text style={styles.title}>Crear cuenta</Text>
 
-      <View style={styles.footTextContainer}>
-        <Text style={styles.whiteText}>¿Ya tienes una cuenta?</Text>
-        <Pressable onPress={() => navigation.navigate('Login')}>
-          <Text style={{ ...styles.whiteText, ...styles.underLineText }}>
-            Iniciar sesión
-          </Text>
-        </Pressable>
-      </View>
+          {/* Inputs */}
+          <View style={styles.form}>
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Email"
+              placeholderTextColor="#9AA0A6"
+              style={styles.input}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Password"
+              placeholderTextColor="#9AA0A6"
+              style={styles.input}
+              secureTextEntry
+            />
+            <TextInput
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Repetir password"
+              placeholderTextColor="#9AA0A6"
+              style={styles.input}
+              secureTextEntry
+            />
+          </View>
 
-      {error && (
-        <Text style={styles.error}>
-          {error?.data?.error?.message || 'Error'}
-        </Text>
-      )}
+          {/* Link a login */}
+          <View style={styles.rowBetween}>
+            <Text style={styles.muted}>¿Ya tenés una cuenta?</Text>
+            <Pressable onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.link}>Iniciar sesión</Text>
+            </Pressable>
+          </View>
 
-      <Pressable
-        style={[styles.btn, isLoading && { opacity: 0.7 }]}
-        onPress={handleRegister}
-        disabled={isLoading}
-      >
-        <Text style={styles.btnText}>{isLoading ? 'Creando...' : 'Crear cuenta'}</Text>
-      </Pressable>
-    </View>
+          {/* Errores */}
+          {error && (
+            <Text style={styles.error}>
+              {error?.data?.error?.message || 'Error'}
+            </Text>
+          )}
+
+          {/* Botón */}
+          <Pressable
+            onPress={handleRegister}
+            style={({ pressed }) => [
+              styles.btn,
+              (pressed || isLoading) && styles.btnPressed,
+            ]}
+            disabled={isLoading}
+            android_ripple={{ color: '#E5E5E5' }}
+          >
+            <Text style={styles.btnText}>
+              {isLoading ? 'Creando…' : 'Crear cuenta'}
+            </Text>
+          </Pressable>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   )
 }
 
 export default SignupScreen
 
+const CARD = {
+  backgroundColor: '#F7F7F7',
+  borderColor: '#EAEAEA',
+  borderWidth: 1,
+  borderRadius: 14,
+}
+
 const styles = StyleSheet.create({
-  gradient: {
+  container: {
     flex: 1,
-    justifyContent: 'center',
+    paddingHorizontal: 20,
     alignItems: 'center',
-    backgroundColor: colors.secondary
+    backgroundColor: colors.white,
+    justifyContent: 'center'
+  },
+  logo: {
+    width: 180,
+    height: 90,
+    marginTop: 12,
+    marginBottom: 4,
   },
   title: {
-    color: colors.primary,
-    fontFamily: 'Mulidey',
-    fontSize: 80
-  },
-  subTitle: {
-    fontFamily: 'Montserrat',
-    fontSize: 18,
-    color: colors.primary,
+    fontSize: 22,
     fontWeight: '700',
-    letterSpacing: 3
+    color: colors.black,
+    marginTop: 12,
   },
-  inputContainer: {
-    gap: 16,
-    margin: 16,
-    marginTop: 48,
-    alignItems: 'center'
-  },
-  textInput: {
-    padding: 8,
-    paddingLeft: 16,
-    borderRadius: 16,
-    backgroundColor: colors.darkGray,
+  form: {
     width: textInputWidth,
-    color: colors.white
+    gap: 12,
+    marginTop: 16,
   },
-  footTextContainer: {
+  input: {
+    ...CARD,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    color: colors.black,
+  },
+  rowBetween: {
+    width: textInputWidth,
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-    marginBottom: 8
+    justifyContent: 'space-between',
+    marginTop: 10,
+    alignItems: 'center',
   },
-  whiteText: {
-    color: colors.white
-  },
-  underLineText: {
-    textDecorationLine: 'underline'
-  },
-  strongText: {
-    fontWeight: '900',
-    fontSize: 16
-  },
-  btn: {
-    padding: 16,
-    paddingHorizontal: 32,
-    backgroundColor: colors.black,
-    borderRadius: 16,
-    marginTop: 16
-  },
-  btnText: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: '700'
+  muted: { color: '#6B7280' },
+  link: {
+    color: colors.black,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
   },
   error: {
-    padding: 16,
-    backgroundColor: colors.red,
-    borderRadius: 8,
-    color: colors.white,
+    width: textInputWidth,
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FCA5A5',
+    borderWidth: 1,
+    color: '#991B1B',
+    padding: 12,
+    borderRadius: 10,
     marginTop: 12,
-    marginBottom: 4
-  }
+    textAlign: 'center',
+  },
+  btn: {
+    width: textInputWidth,
+    backgroundColor: colors.black,
+    paddingVertical: 14,
+    borderRadius: 28,
+    alignItems: 'center',
+    marginTop: 16,
+    elevation: 2,
+  },
+  btnPressed: { opacity: 0.85 },
+  btnText: { color: colors.white, fontWeight: '800', fontSize: 16 },
 })

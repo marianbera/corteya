@@ -1,42 +1,53 @@
 {
   "expo": {
     "name": "CorteYa",
-    "slug": "corteya",
+    "slug": "Corteya",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "light",
+
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
+      "backgroundColor": "#ffffff"
     },
+
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tuusuario.corteya"
     },
+
     "android": {
-      "config": {
-        "googleMaps": {
-          "apiKey": "process.env.EXPO_PUBLIC_GMAPS_API_KEY"
-        }
-      },
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.pablormacia.mundogeek74035"
+      "package": "com.tuusuario.corteya"
     },
+
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/logo.png"
     },
+
     "plugins": [
-      "expo-font",
-      "expo-sqlite"
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "b0fe489b-0f03-4547-b382-1643509eb487"
-      }
-    }
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Karla-Regular.ttf",
+            "./assets/fonts/Karla-Bold.ttf",
+            "./assets/fonts/Karla-Italic.ttf",
+            "./assets/fonts/Karla-Light.ttf",
+            "./assets/fonts/PressStart2P-Regular.ttf",
+            "./assets/fonts/Mulidey.ttf"
+          ]
+        }
+      ]
+    ]
   }
 }

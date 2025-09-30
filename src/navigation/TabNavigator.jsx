@@ -28,9 +28,22 @@ export default function TabNavigator() {
         <Tab.Navigator
             screenOptions={{
                 headerShown: false,
-                tabBarShowLabel: false,
-                tabBarStyle:styles.tabBar
-            }}
+                tabBarStyle: {
+                position: 'absolute',
+                backgroundColor: '#FFFFFF',   // <-- blanco sólido
+                borderTopColor: '#EDEDED',
+                height: 64,
+                paddingBottom: 8,
+                paddingTop: 8,
+                elevation: 8,
+                shadowColor: '#000',
+                shadowOpacity: 0.06,
+                shadowRadius: 6,
+                shadowOffset: { width: 0, height: -2 },
+                },
+                tabBarActiveTintColor: colors.black,
+                tabBarInactiveTintColor: '#9E9E9E',
+        }}
         >
             <Tab.Screen
                 name="Home"

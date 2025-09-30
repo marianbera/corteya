@@ -1,169 +1,222 @@
-import { StyleSheet, Text, View, TextInput, Pressable, Dimensions, Switch } from 'react-native'
-import { colors } from '../../global/colors';
-import { useEffect, useState } from 'react';
-import { useLoginMutation } from '../../services/auth/authApi';
-import { setUser } from '../../features/user/userSlice';
-import { useDispatch } from 'react-redux';
-import { saveSession, clearSession } from '../../db';
+import { useEffect, useState } from 'react'
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  Pressable,
+  Dimensions,
+  Switch,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native'
+import { colors } from '../../global/colors'
+import { useLoginMutation } from '../../services/auth/authApi'
+import { setUser } from '../../features/user/userSlice'
+import { useDispatch } from 'react-redux'
+import { saveSession, clearSession } from '../../db'
 
-const textInputWidth = Dimensions.get('window').width * 0.7
+const textInputWidth = Math.min(Dimensions.get('window').width * 0.86, 420)
+const LOGO = require('../../../assets/logo.png') // <- poné tu imagen en /assets/logo.png
 
-const LoginScreen = ({ navigation, route }) => {
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [persistSession, setPersistSession] = useState(false)
-    const [triggerLogin, result] = useLoginMutation()
+const LoginScreen = ({ navigation }) => {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [persistSession, setPersistSession] = useState(false)
+  const [triggerLogin, result] = useLoginMutation()
+  const dispatch = useDispatch()
 
-    const dispatch = useDispatch()
+  const onsubmit = () => {
+    triggerLogin({ email, password })
+  }
 
-    const onsubmit = () => {
-        triggerLogin({ email, password })
+  useEffect(() => {
+    const saveLoginSession = async () => {
+      if (result.status === 'fulfilled') {
+        try {
+          const { localId, email } = result.data
+          if (persistSession) {
+            await saveSession(localId, email)
+          } else {
+            await clearSession()
+          }
+          dispatch(setUser({ localId, email }))
+        } catch (error) {
+          console.log('Error al guardar sesión:', error)
+        }
+      } else if (result.status === 'rejected') {
+        console.log('Hubo un error al iniciar sesión')
+      }
     }
+    saveLoginSession()
+  }, [result])
 
-
-    useEffect(() => {
-        const saveLoginSession = async () => {
-            if (result.status === "fulfilled") {
-                try {
-                    const { localId, email } = result.data;
-
-                    if (persistSession) {
-                        await saveSession(localId, email);
-                    } else {
-                        await clearSession();
-                    }
-                    dispatch(setUser({ localId, email }));
-                } catch (error) {
-                    console.log("Error al guardar sesión:", error);
-                }
-            } else if (result.status === "rejected") {
-                console.log("Hubo un error al iniciar sesión");
-            }
-        };
-
-        saveLoginSession();
-    }, [result]);
-
-
-
-    return (
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: colors.white }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <StatusBar barStyle="dark-content" />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>
-            <Text style={styles.title}>CorteYa</Text>
-            <Text style={styles.subTitle}>Inicia sesión</Text>
-            <View style={styles.inputContainer}>
-                <TextInput
-                    onChangeText={(text) => setEmail(text)}
-                    placeholderTextColor={colors.white}
-                    placeholder="Email"
-                    style={styles.textInput}
-                />
-                <TextInput
-                    onChangeText={(text) => setPassword(text)}
-                    placeholderTextColor={colors.white}
-                    placeholder='Password'
-                    style={styles.textInput}
-                    secureTextEntry
-                />
-            </View>
-            <View style={styles.footTextContainer}>
-                <Text style={styles.whiteText}>¿No tienes una cuenta?</Text>
-                <Pressable onPress={() => navigation.navigate('Signup')}>
-                    <Text style={
-                        {
-                            ...styles.whiteText,
-                            ...styles.underLineText
-                        }
-                    }>
-                        Crea una
-                    </Text>
-                </Pressable>
-            </View>
+          {/* Logo */}
+          <Image source={LOGO} style={styles.logo} resizeMode="contain" />
 
-            <Pressable style={styles.btn} onPress={onsubmit}><Text style={styles.btnText}>Iniciar sesión</Text></Pressable>
-            <View style={styles.rememberMe}>
-                <Text style={{ color: colors.white }}>¿Mantener sesión iniciada?</Text>
-                <Switch
-                    onValueChange={() => setPersistSession(!persistSession)}
-                    value={persistSession}
-                    trackColor={{ false: '#767577', true: '#81b0ff' }}
-                />
-            </View>
+          {/* Título */}
+          <Text style={styles.title}>Iniciar sesión</Text>
+
+          {/* Inputs */}
+          <View style={styles.form}>
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Email"
+              placeholderTextColor="#9AA0A6"
+              style={styles.input}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Password"
+              placeholderTextColor="#9AA0A6"
+              style={styles.input}
+              secureTextEntry
+            />
+          </View>
+
+          {/* Link a registro */}
+          <View style={styles.rowBetween}>
+            <Text style={styles.muted}>¿No tenés una cuenta?</Text>
+            <Pressable onPress={() => navigation.navigate('Signup')}>
+              <Text style={styles.link}>Crear cuenta</Text>
+            </Pressable>
+          </View>
+
+          {/* Errores */}
+          {result.isError && (
+            <Text style={styles.error}>
+              {result?.error?.data?.error?.message || 'Error al iniciar sesión'}
+            </Text>
+          )}
+
+          {/* Botón */}
+          <Pressable
+            onPress={onsubmit}
+            style={({ pressed }) => [
+              styles.btn,
+              (pressed || result.isLoading) && styles.btnPressed,
+            ]}
+            disabled={result.isLoading}
+            android_ripple={{ color: '#E5E5E5' }}
+          >
+            <Text style={styles.btnText}>
+              {result.isLoading ? 'Ingresando…' : 'Ingresar'}
+            </Text>
+          </Pressable>
+
+          {/* Recordarme */}
+          <View style={styles.rememberMe}>
+            <Text style={styles.muted}>¿Mantener sesión iniciada?</Text>
+            <Switch
+              onValueChange={() => setPersistSession(!persistSession)}
+              value={persistSession}
+              trackColor={{ false: '#D1D5DB', true: '#B4A178' }}
+              thumbColor={persistSession ? '#fff' : '#fff'}
+            />
+          </View>
         </View>
-    )
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+  )
 }
 
 export default LoginScreen
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: colors.secondary
-    },
-    title: {
-        color: colors.primary,
-        fontFamily: 'Mulidey',
-        fontSize: 80
-    },
-    subTitle: {
-        fontFamily: "Montserrat",
-        fontSize: 18,
-        color: colors.primary,
-        fontWeight: '700',
-        letterSpacing: 3
-    },
-    inputContainer: {
-        gap: 16,
-        margin: 16,
-        marginTop: 48,
-        alignItems: 'center',
+const CARD = {
+  backgroundColor: '#F7F7F7',
+  borderColor: '#EAEAEA',
+  borderWidth: 1,
+  borderRadius: 14,
+}
 
-    },
-    textInput: {
-        padding: 8,
-        paddingLeft: 16,
-        borderRadius: 16,
-        backgroundColor: colors.darkGray,
-        width: textInputWidth,
-        color: colors.white,
-    },
-    footTextContainer: {
-        flexDirection: 'row',
-        gap: 8,
-    },
-    whiteText: {
-        color: colors.white
-    },
-    underLineText: {
-        textDecorationLine: 'underline',
-    },
-    strongText: {
-        fontWeight: '900',
-        fontSize: 16
-    },
-    btn: {
-        padding: 16,
-        paddingHorizontal: 32,
-        backgroundColor: colors.black,
-        borderRadius: 16,
-        marginTop: 32
-    },
-    btnText: {
-        color: colors.white,
-        fontSize: 16,
-        fontWeight: '700'
-    },
-    error: {
-        padding: 16,
-        backgroundColor: colors.red,
-        borderRadius: 8,
-        color: colors.white
-    },
-    rememberMe: {
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-        gap: 8
-    }
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+  },
+  logo: {
+    width: 180,
+    height: 90,
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.black,
+    marginTop: 12,
+  },
+  form: {
+    width: textInputWidth,
+    gap: 12,
+    marginTop: 16,
+  },
+  input: {
+    ...CARD,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    color: colors.black,
+  },
+  rowBetween: {
+    width: textInputWidth,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  muted: { color: '#6B7280' },
+  link: {
+    color: colors.black,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
+  },
+  error: {
+    width: textInputWidth,
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FCA5A5',
+    borderWidth: 1,
+    color: '#991B1B',
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  btn: {
+    width: textInputWidth,
+    backgroundColor: colors.black,
+    paddingVertical: 14,
+    borderRadius: 28,
+    alignItems: 'center',
+    marginTop: 16,
+    elevation: 2,
+  },
+  btnPressed: { opacity: 0.85 },
+  btnText: { color: colors.white, fontWeight: '800', fontSize: 16 },
+  rememberMe: {
+    width: textInputWidth,
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
 })
