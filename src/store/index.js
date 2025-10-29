@@ -1,8 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
-// reducers “normales”
-import shopReducer from "../features/shop/shopSlice";
+// Reducers “normales”
 import userReducer from "../features/user/userSlice";
 
 // RTK Query APIs (cada una una sola vez)
@@ -13,10 +12,10 @@ import { barbersApi } from "../services/barbers/barbersApi";
 
 const store = configureStore({
   reducer: {
-    shopReducer,
+    // Reducers normales
     userReducer,
 
-    // Registrá CADA api una vez
+    // RTK Query APIs
     [shopApi.reducerPath]: shopApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
     [userApi.reducerPath]: userApi.reducer,
@@ -24,7 +23,6 @@ const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
-      // Agregá cada middleware una sola vez
       shopApi.middleware,
       authApi.middleware,
       userApi.middleware,

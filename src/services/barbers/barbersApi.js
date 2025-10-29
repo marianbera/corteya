@@ -6,7 +6,7 @@ const normalizeObj = (obj) =>
 export const barbersApi = createApi({
   reducerPath: 'barbersApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.EXPO_PUBLIC_BASE_RTDB_URL, // …firebaseio.com/
+    baseUrl: process.env.EXPO_PUBLIC_BASE_RTDB_URL, 
   }),
   endpoints: (builder) => ({
     // Lista (para la pantalla de búsqueda)

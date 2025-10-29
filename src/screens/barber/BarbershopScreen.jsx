@@ -113,9 +113,6 @@ export default function BarbershopScreen() {
             <TextKarlaRegular>
               {barber?.loyalty?.rewardText ?? 'Programa de puntos'}
             </TextKarlaRegular>
-            <Pressable style={styles.moreBtn}>
-              <TextKarlaRegular style={styles.moreBtnText}>Ver más</TextKarlaRegular>
-            </Pressable>
           </View>
         </View>
       </Section>

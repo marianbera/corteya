@@ -1,213 +1,200 @@
-import { StyleSheet, Text, View, Pressable, Image, ActivityIndicator, ScrollView } from 'react-native'
-import { colors } from '../../global/colors'
-import CameraIcon from '../../components/CameraIcon'
-import { useState, useEffect } from 'react'
-import * as ImagePicker from 'expo-image-picker'
-import { useSelector, useDispatch } from 'react-redux'
-import { usePutProfilePictureMutation } from '../../services/user/userApi'
-import { setProfilePicture, clearUser } from '../../features/user/userSlice'
-import MapView, { Marker } from 'react-native-maps'
-import * as Location from 'expo-location'
-import Icon from 'react-native-vector-icons/MaterialIcons'
-import { clearSession } from '../../db'
+import { StyleSheet, View, Image, Pressable, ScrollView, Alert, Text } from 'react-native';
+import { colors } from '../../global/colors';
+import { useEffect, useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
+import { useSelector, useDispatch } from 'react-redux';
+import { usePutProfilePictureMutation } from '../../services/user/userApi';
+import { setProfilePicture, setUser } from '../../features/user/userSlice';
+import { clearSession } from '../../db';
+import Icon from 'react-native-vector-icons/Feather';
 
-const ProfileScreen = () => {
-  const dispatch = useDispatch()
+export default function ProfileScreen({ navigation }) {
+  const dispatch = useDispatch();
 
-  // user / foto
-  const user = useSelector(state => state.userReducer.userEmail)
-  const localId = useSelector(state => state.userReducer.localId)
-  const image = useSelector(state => state.userReducer.profilePicture)
-  const [triggerPutProfilePicture] = usePutProfilePictureMutation()
+  const email   = useSelector(state => state.userReducer.userEmail);
+  const localId = useSelector(state => state.userReducer.localId);
+  const image   = useSelector(state => state.userReducer.profilePicture);
 
-  // ubicación
-  const [location, setLocation] = useState(null)
-  const [locationLoaded, setLocationLoaded] = useState(false)
-  const [address, setAddress] = useState('')
+  const [triggerPutProfilePicture] = usePutProfilePictureMutation();
+  const [name, setName] = useState('');
 
-  const pickImage = async () => {
-    const result = await ImagePicker.launchCameraAsync({
+  // Trae (si existe) el nombre desde RTDB, o toma el pre-@ del email
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (!localId) return;
+      try {
+        const url = `${process.env.EXPO_PUBLIC_BASE_RTDB_URL}/users/${localId}.json`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!mounted) return;
+        setName(data?.name || email?.split('@')[0] || '');
+      } catch {
+        setName(email?.split('@')[0] || '');
+      }
+    })();
+    return () => { mounted = false; };
+  }, [localId]);
+
+  // ---- helpers foto
+  const ensurePermissions = async () => {
+    const { status: lib } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status: cam } = await ImagePicker.requestCameraPermissionsAsync();
+    return lib === 'granted' && cam === 'granted';
+  };
+
+  const updateImage = (base64) => {
+    const img = `data:image/jpeg;base64,${base64}`;
+    dispatch(setProfilePicture(img));
+    if (localId) triggerPutProfilePicture({ localId, image: img });
+  };
+
+  const pickFromCamera = async () => {
+    const res = await ImagePicker.launchCameraAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
       base64: true,
-    })
+    });
+    if (!res.canceled) updateImage(res.assets[0].base64);
+  };
 
-    if (!result.canceled) {
-      const imgBase64 = `data:image/jpeg;base64,${result.assets[0].base64}`
-      dispatch(setProfilePicture(imgBase64))
-      triggerPutProfilePicture({ localId, image: imgBase64 })
+  const pickFromLibrary = async () => {
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+      base64: true,
+    });
+    if (!res.canceled) updateImage(res.assets[0].base64);
+  };
+
+  const onEditPhoto = async () => {
+    const ok = await ensurePermissions();
+    if (!ok) {
+      Alert.alert('Permisos', 'Necesitamos permisos de cámara y galería para cambiar la foto.');
+      return;
     }
-  }
+    Alert.alert(
+      'Foto de perfil',
+      'Elegí una opción',
+      [
+        { text: 'Sacar foto', onPress: pickFromCamera },
+        { text: 'Elegir de la galería', onPress: pickFromLibrary },
+        { text: 'Cancelar', style: 'cancel' },
+      ],
+      { cancelable: true }
+    );
+  };
 
-  useEffect(() => {
-    async function getCurrentLocation() {
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync()
-        if (status !== 'granted') {
-          setLocationLoaded(true)
-          return
-        }
-
-        const loc = await Location.getCurrentPositionAsync({})
-        if (loc) {
-          const resp = await fetch(
-            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${loc.coords.latitude},${loc.coords.longitude}&key=${process.env.EXPO_PUBLIC_GMAPS_API_KEY}`
-          )
-          const data = await resp.json()
-          setAddress(data?.results?.[0]?.formatted_address || '')
-          setLocation(loc)
-        }
-      } catch (e) {
-        console.log('Error al obtener la ubicación:', e)
-      } finally {
-        setLocationLoaded(true)
-      }
-    }
-    getCurrentLocation()
-  }, [])
-
-  const handleLogout = async () => {
-    try { await clearSession() } catch {}
-    dispatch(clearUser())
-  }
+  const onLogout = async () => {
+    try { await clearSession(); } catch {}
+    dispatch(setUser({ localId: null, email: null }));
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.profileContainer}>
-      {/* Avatar */}
-      <View style={styles.imageProfileContainer}>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      {/* Avatar + botón cámara */}
+      <View style={styles.avatarWrap}>
         {image ? (
-          <Image source={{ uri: image }} resizeMode="cover" style={styles.profileImage} />
+          <Image source={{ uri: image }} style={styles.avatar} />
         ) : (
-          <Text style={styles.textProfilePlaceHolder}>{(user || 'U').charAt(0).toUpperCase()}</Text>
+          <View style={styles.avatarPlaceholder}>
+            <Icon name="user" size={36} color={colors.white} />
+          </View>
         )}
-        <Pressable
-          onPress={pickImage}
-          style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }, styles.cameraIcon]}
-        >
-          <CameraIcon />
+        <Pressable onPress={onEditPhoto} style={styles.camBtn} hitSlop={10}>
+          <Icon name="camera" size={16} color={colors.white} />
         </Pressable>
       </View>
 
-      {/* Datos */}
-      <Text style={styles.profileData}>Email: {user}</Text>
+      {/* Nombre + email */}
+      <Text style={styles.name}>{name}</Text>
+      <Text style={styles.email}>{email}</Text>
 
-      {/* Ubicación */}
-      <View style={styles.titleContainer}>
-        <Text>Mi ubicación:</Text>
-      </View>
-      <View style={styles.mapContainer}>
-        {location ? (
-          <MapView
-            style={styles.map}
-            initialRegion={{
-              latitude: location.coords.latitude,
-              longitude: location.coords.longitude,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            }}
-          >
-            <Marker
-              coordinate={{ latitude: location.coords.latitude, longitude: location.coords.longitude }}
-              title={'CorteYa'}
-            />
-          </MapView>
-        ) : locationLoaded ? (
-          <Text>Hubo un problema al obtener la ubicación</Text>
-        ) : (
-          <ActivityIndicator />
-        )}
-      </View>
-
-      <View style={styles.placeDescriptionContainer}>
-        <View style={styles.addressContainer}>
-          <Text style={styles.address}>{address || ''}</Text>
+      {/* ---- NUEVO: botón Mis reservas ---- */}
+      <Pressable
+        onPress={() => navigation.navigate('MisReservas')}
+        style={({ pressed }) => [styles.menuBtn, pressed && { opacity: 0.9 }]}
+      >
+        <View style={styles.menuBtnLeft}>
+          <Icon name="calendar" size={18} color={colors.black} />
+          <Text style={styles.menuText}>Mis reservas</Text>
         </View>
-      </View>
+        <Icon name="chevron-right" size={18} color={colors.black} />
+      </Pressable>
 
-      {/* Botón Salir */}
-      <Pressable style={styles.logoutBtn} onPress={handleLogout}>
-        <Icon name="logout" size={18} color={colors.white} />
-        <Text style={styles.logoutText}>Salir</Text>
+      {/* Botón Cerrar sesión */}
+      <Pressable onPress={onLogout} style={({ pressed }) => [styles.logoutBtn, pressed && { opacity: 0.9 }]}>
+        <Text style={styles.logoutText}>Cerrar sesión</Text>
       </Pressable>
     </ScrollView>
-  )
+  );
 }
 
-export default ProfileScreen
-
 const styles = StyleSheet.create({
-  profileContainer: {
-    flexGrow: 1,
-    padding: 16,
-    alignItems: 'center',
-    gap: 16,
+  screen: { flex: 1, backgroundColor: colors.white },
+  content: { alignItems: 'center', padding: 20, gap: 14 },
+
+  // Avatar
+  avatarWrap: { width: 130, height: 130, position: 'relative', marginTop: 12 },
+  avatar: {
+    width: 130, height: 130, borderRadius: 65,
+    borderWidth: 3, borderColor: '#F2F2F2', backgroundColor: '#EAEAEA',
+  },
+  avatarPlaceholder: {
+    width: 130, height: 130, borderRadius: 65,
+    backgroundColor: '#B4A178', alignItems: 'center', justifyContent: 'center',
+    borderWidth: 3, borderColor: '#F2F2F2',
+  },
+  camBtn: {
+    position: 'absolute', right: 4, bottom: 6,
+    width: 34, height: 34, borderRadius: 17,
+    backgroundColor: colors.black, alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 4, elevation: 2,
+  },
+
+  name: { fontSize: 20, fontWeight: '700', color: colors.black, marginTop: 6 },
+  email: { color: '#6F6F6F', marginBottom: 8 },
+
+  // ---- NUEVO: botón Mis reservas
+  menuBtn: {
+    width: '92%',
     backgroundColor: colors.white,
-  },
-  imageProfileContainer: {
-    width: 128,
-    height: 128,
-    borderRadius: 128,
-    backgroundColor: colors.purple,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  textProfilePlaceHolder: {
-    color: colors.white,
-    fontSize: 48,
-  },
-  profileImage: {
-    width: 128,
-    height: 128,
-    borderRadius: 128,
-  },
-  cameraIcon: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-  },
-  profileData: {
-    paddingVertical: 8,
-    fontSize: 16,
-  },
-  titleContainer: {
-    width: '100%',
-    paddingHorizontal: 8,
-    marginTop: 4,
-  },
-  mapContainer: {
-    width: '100%',
-    height: 240,
-    overflow: 'hidden',
-    elevation: 5,
-    marginBottom: 4,
-    borderRadius: 12,
-  },
-  map: {
-    height: 240,
-  },
-  placeDescriptionContainer: {
-    width: '100%',
-    paddingHorizontal: 8,
-  },
-  addressContainer: {
-    paddingVertical: 8,
-  },
-  address: {
-    color: colors.black,
-  },
-  logoutBtn: {
-    marginTop: 16,
-    backgroundColor: colors.black,
-    padding: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#EEE',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
     flexDirection: 'row',
-    gap: 8,
-    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  logoutText: { color: colors.white, fontWeight: '700' },
-})
+  menuBtnLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  menuText: {
+    color: colors.black,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  logoutBtn: {
+    marginTop: 12,
+    width: '92%',
+    backgroundColor: colors.black,
+    paddingVertical: 14,
+    borderRadius: 28,
+    alignItems: 'center',
+    shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 6, elevation: 2,
+  },
+  logoutText: { color: colors.white, fontWeight: '700', fontSize: 16 },
+});
